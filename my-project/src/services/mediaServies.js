@@ -7,6 +7,7 @@ export const getMovies = async () => {
       console.log(error)
     }
   }
+  
   export const getMovieDetails = async (movieId) => {
     try {
       const response = await movieApi.get(`/movie/${movieId}`);

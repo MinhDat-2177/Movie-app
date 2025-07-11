@@ -1,38 +1,42 @@
 // eslint-disable-next-line no-unused-vars
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { imgUrl } from "../../../config/config";
-import { useNavigate } from "react-router-dom"; // Hook dùng để điều hướng
+import { useNavigate } from "react-router-dom";
+import { getMovieCast } from "../../../api/axios";
 
 const Details = ({ movie }) => {
-  const navigate = useNavigate(); // Hook điều hướng
+  const navigate = useNavigate();
+  const [cast, setCast] = useState([]);
 
-  // Helper function to format currency
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+  useEffect(() => {
+    if (movie.id) {
+      getMovieCast(movie.id)
+        .then(setCast)
+        .catch(console.error);
+    }
+  }, [movie.id]);
+
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+      maximumFractionDigits: 0,
+  }).format(value);
 
-  // Helper function to render genres
-  const renderGenres = () => {
-    if (!movie.genres || movie.genres.length === 0) return "N/A";
-    return movie.genres.map(genre => genre.name).join(", ");
-  };
+  const renderGenres = () =>
+    !movie.genres || movie.genres.length === 0
+      ? "N/A"
+      : movie.genres.map((genre) => genre.name).join(", ");
 
-  // Helper function to render production companies
-  const renderProductionCompanies = () => {
-    if (!movie.production_companies || movie.production_companies.length === 0) return "N/A";
-    return movie.production_companies.map(company => company.name).join(", ");
-  };
+  const renderProductionCompanies = () =>
+    !movie.production_companies || movie.production_companies.length === 0
+      ? "N/A"
+      : movie.production_companies.map((company) => company.name).join(", ");
 
-  // Handle watching the movie (e.g., navigate to a page or play video)
   const handleWatchMovie = () => {
-    // Ví dụ: điều hướng đến trang chi tiết phim hoặc phát trailer
-    navigate(`/watch/${movie.id}`); // Điều hướng đến một trang với id phim
+    navigate(`/watch/${movie.id}`);
   };
 
   return (
@@ -40,80 +44,98 @@ const Details = ({ movie }) => {
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="md:flex">
           {/* Poster */}
-          <div className="md:w-1/3 flex-shrink-0">
+          <div className="md:w-1/3 flex-shrink-0 flex items-center justify-center bg-gray-100">
             <img
               src={`${imgUrl}${movie.poster_path}`}
               alt={movie.original_title}
-              className="w-full h-full object-cover"
+              className="w-full h-auto max-h-[500px] object-contain rounded"
             />
           </div>
-          
+
           {/* Movie Details */}
           <div className="md:w-2/3 p-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{movie.title}</h1>
-            
-            <div className="grid md:grid-cols-2 gap-4">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">{movie.title}</h1>
+            <p className="text-lg text-gray-500 mb-4 italic">{movie.tagline || "N/A"}</p>
+
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <p className="text-sm font-semibold text-gray-600">Original Title</p>
-                <p className="text-lg">{movie.original_title}</p>
-
-                <p className="text-sm font-semibold text-gray-600 mt-3">Overview</p>
-                <p className="text-md">{movie.overview || "No description available."}</p>
-
-                <p className="text-sm font-semibold text-gray-600 mt-3">Release Date</p>
-                <p>{movie.release_date}</p>
-
-                <p className="text-sm font-semibold text-gray-600 mt-3">Tagline</p>
-                <p className="italic">{movie.tagline || "N/A"}</p>
+                <DetailItem label="Original Title" value={movie.original_title} />
+                <DetailItem label="Overview" value={movie.overview || "No description available."} />
+                <DetailItem label="Release Date" value={movie.release_date} />
+                <DetailItem label="Genres" value={renderGenres()} />
               </div>
               
               <div>
-                <p className="text-sm font-semibold text-gray-600">Genres</p>
-                <p>{renderGenres()}</p>
-
-                <p className="text-sm font-semibold text-gray-600 mt-3">Budget</p>
-                <p>{formatCurrency(movie.budget)}</p>
-
-                <p className="text-sm font-semibold text-gray-600 mt-3">Revenue</p>
-                <p>{formatCurrency(movie.revenue)}</p>
-
-                <p className="text-sm font-semibold text-gray-600 mt-3">Production Companies</p>
-                <p className="text-sm">{renderProductionCompanies()}</p>
-
+                <DetailItem label="Budget" value={formatCurrency(movie.budget)} />
+                <DetailItem label="Revenue" value={formatCurrency(movie.revenue)} />
+                <DetailItem label="Production Companies" value={renderProductionCompanies()} />
                 <div className="flex items-center mt-3">
                   <span className="text-sm font-semibold text-gray-600 mr-2">Rating:</span>
                   <span className="text-lg font-bold text-yellow-600">
-                    {movie.vote_average.toFixed(1)} / 10 
-                    <span className="text-sm text-gray-500 ml-1">({movie.vote_count} votes)</span>
+                    {movie.vote_average.toFixed(1)} / 10
+                    <span className="text-sm text-gray-500 ml-1">
+                      ({movie.vote_count} votes)
+                    </span>
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Additional Info */}
-            <div className="mt-4 border-t pt-3 text-sm text-gray-600">
-              <p>Runtime: {movie.runtime} minutes</p>
-              <p>Original Language: {movie.original_language}</p>
-              <p>Status: {movie.status}</p>
+            <div className="mt-6 border-t pt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
+              <div>
+                <span className="font-semibold">Runtime:</span> {movie.runtime} minutes
+              </div>
+              <div>
+                <span className="font-semibold">Original Language:</span> {movie.original_language}
+              </div>
+              <div>
+                <span className="font-semibold">Status:</span> {movie.status}
+              </div>
               {movie.homepage && (
-                <p>
-                  Website: <a 
-                    href={movie.homepage} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                <div className="col-span-3">
+                  <span className="font-semibold">Website:</span>{" "}
+                  <a
+                    href={movie.homepage}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
                   >
                     {movie.homepage}
                   </a>
-                </p>
+                </div>
               )}
             </div>
 
+            {/* Cast */}
+            {cast.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-semibold mb-4 text-gray-800">Cast</h2>
+                <div className="flex gap-4 overflow-x-auto pb-4">
+                  {cast.map((actor) => (
+                    <div key={actor.id} className="w-28 flex-shrink-0 text-center">
+                      <img
+                        src={
+                          actor.profile_path
+                            ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+                            : 'https://via.placeholder.com/150x225?text=No+Image'
+                        }
+                        alt={actor.name}
+                        className="w-full h-40 object-cover rounded-lg mb-2"
+                      />
+                      <p className="text-sm font-medium text-gray-800">{actor.name}</p>
+                      <p className="text-xs text-gray-500">as {actor.character}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Watch Movie Button */}
-            <div className="mt-4">
+            <div className="mt-6 flex justify-end">
               <button
                 onClick={handleWatchMovie}
-                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700"
+                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition"
               >
                 Watch Movie
               </button>
@@ -123,6 +145,22 @@ const Details = ({ movie }) => {
       </div>
     </div>
   );
+  
+  };
+
+// Helper component for cleaner detail rows
+function DetailItem({ label, value }) {
+  return (
+    <div className="mb-3">
+      <p className="text-sm font-semibold text-gray-600">{label}</p>
+      <p className="text-md">{value}</p>
+    </div>
+  );
+}
+
+DetailItem.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.node.isRequired,
 };
 
 Details.propTypes = {
@@ -137,18 +175,22 @@ Details.propTypes = {
     revenue: PropTypes.number,
     vote_average: PropTypes.number,
     vote_count: PropTypes.number,
-    genres: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string
-    })),
-    production_companies: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string
-    })),
+    genres: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+      })
+    ),
+    production_companies: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+      })
+    ),
     runtime: PropTypes.number,
     original_language: PropTypes.string,
     status: PropTypes.string,
     homepage: PropTypes.string,
-    id: PropTypes.number.isRequired, // Thêm trường id phim
-  }).isRequired
+    id: PropTypes.number.isRequired,
+  }).isRequired,
 };
 
 export default Details;

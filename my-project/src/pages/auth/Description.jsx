@@ -18,7 +18,7 @@ const Description = () => {
   }, [id]);
 
   return (
-    <div className="p-4 bg-gray-900 min-screen">
+    <div className="p-24 bg-gray-900 min-screen">
       {movie ? (
         <Details movie={movie} />
       ) : (
