@@ -30,7 +30,6 @@ const Movies = () => {
   
   return (
     <div className="flex min-h-screen w-screen flex-wrap px-4">
-      {/* Swiper chính với hình ảnh nền lớn */}
       <Swiper
         slidesPerView={1}
         className="h-[70vh] w-[100vw]"
